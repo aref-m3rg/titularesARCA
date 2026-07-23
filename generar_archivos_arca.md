@@ -4,7 +4,7 @@ Este documento describe el funcionamiento, arquitectura, reglas de negocio y mod
 
 ---
 
-## 📋 Tabla de Contenidos
+## Tabla de Contenidos
 1. [Descripción General](#descripción-general)
 2. [Archivos de Referencia y Requisitos](#archivos-de-referencia-y-requisitos)
 3. [Instalación y Requisitos del Entorno](#instalación-y-requisitos-del-entorno)
@@ -17,7 +17,7 @@ Este documento describe el funcionamiento, arquitectura, reglas de negocio y mod
 
 ---
 
-## 🎯 Descripción General
+## Descripción General
 
 El script `generar_archivos_arca.py` toma como insumo un archivo CSV (`2025_arca.csv`) que contiene la información de catastros, valuaciones y titularidad de inmuebles de la provincia de Tierra del Fuego, y genera dos archivos de texto de ancho fijo codificados en `ISO-8859-1` (Latin-1) con salto de línea estándar Windows (`\r\n`):
 
@@ -26,7 +26,7 @@ El script `generar_archivos_arca.py` toma como insumo un archivo CSV (`2025_arca
 
 ---
 
-## 📚 Archivos de Referencia y Requisitos
+## Archivos de Referencia y Requisitos
 
 La estructura de campos y reglas de formato cumplen estrictamente con los siguientes documentos normativos:
 - **`ANEXO SETI PROVINCIAS.PDF`**: Especificaciones generales de validación, codificación `ISO-8859-1`, reglas de completitud y tablas de códigos anexas (1 a 14).
@@ -35,7 +35,7 @@ La estructura de campos y reglas de formato cumplen estrictamente con los siguie
 
 ---
 
-## 💻 Instalación y Requisitos del Entorno
+## Instalación y Requisitos del Entorno
 
 El script está desarrollado en **Python 3.8+** y utiliza las siguientes librerías estándar y de procesamiento de datos:
 
@@ -45,7 +45,7 @@ pip install pandas numpy
 
 ---
 
-## ⚙️ Uso y Parámetros por Línea de Comandos
+## Uso y Parámetros por Línea de Comandos
 
 ### Sintaxis Básica:
 ```bash
@@ -56,8 +56,8 @@ python generar_archivos_arca.py [OPCIONES]
 
 | Parámetro | Descripción | Valor por Defecto |
 |---|---|---|
-| `--csv` | Ruta al archivo CSV de origen | `c:\Users\mmirabete\workspace\titularesARCA\2025_arca.csv` |
-| `--out-dir` | Directorio de destino para los archivos planos | `c:\Users\mmirabete\workspace\titularesARCA` |
+| `--csv` | Ruta al archivo CSV de origen | `2025_arca.csv` |
+| `--out-dir` | Directorio de destino para los archivos planos | `..\titularesARCA` |
 | `--year` | Año de corte de la información (formato AAAA) | `2025` |
 | `--out-cabecera` | Nombre del archivo de Rótulo Cabecera | `ROTULO_CABECERA.txt` |
 | `--out-titulares` | Nombre del archivo de Propiedades Titulares | `PROPIEDADES_TITULARES.txt` |
@@ -76,7 +76,7 @@ python generar_archivos_arca.py --csv "./datos_2026.csv" --out-dir "./salida" --
 
 ---
 
-## 📐 Estructura y Especificación de Archivos Generados
+## Estructura y Especificación de Archivos Generados
 
 ### 1. Rótulo Cabecera (31 posiciones)
 
@@ -130,7 +130,7 @@ Se incluye 1 registro por cada titular poseedor del inmueble.
 
 ---
 
-## 🛠️ Reglas de Formateo y Mapeo de Datos
+## Reglas de Formateo y Mapeo de Datos
 
 1. **Tipos de Datos y Alineación**:
    - **Tipo 1 (Alfabético)** / **Tipo 3 (Alfanumérico)**: Alineados a la izquierda, se completan con espacios en blanco a la derecha hasta alcanzar la longitud especificada.
@@ -144,7 +144,7 @@ Se incluye 1 registro por cada titular poseedor del inmueble.
 
 ---
 
-## 🚀 Ejemplo de Ejecución
+## Ejemplo de Ejecución
 
 Al ejecutar el script desde la consola:
 
@@ -154,14 +154,14 @@ python generar_archivos_arca.py
 
 ### Salida esperada en consola:
 ```text
-Cargando dataset desde: c:\Users\mmirabete\workspace\titularesARCA\2025_arca.csv
+Cargando dataset desde: 2025_arca.csv
 Total de registros a procesar: 58490
-Escribiendo Rótulo Cabecera en: c:\Users\mmirabete\workspace\titularesARCA\ROTULO_CABECERA.txt
-Escribiendo Propiedades Titulares en: c:\Users\mmirabete\workspace\titularesARCA\PROPIEDADES_TITULARES.txt
+Escribiendo Rótulo Cabecera en: ROTULO_CABECERA.txt
+Escribiendo Propiedades Titulares en: PROPIEDADES_TITULARES.txt
 
 ==================================================
 PROCESO COMPLETADO EXITOSAMENTE!
-- Archivo Cabecera: c:\Users\mmirabete\workspace\titularesARCA\ROTULO_CABECERA.txt (1 registro, 31 pos)
-- Archivo Titulares: c:\Users\mmirabete\workspace\titularesARCA\PROPIEDADES_TITULARES.txt (58490 registros, 344 pos c/u)
+- Archivo Cabecera: ROTULO_CABECERA.txt (1 registro, 31 pos)
+- Archivo Titulares: PROPIEDADES_TITULARES.txt (58490 registros, 344 pos c/u)
 ==================================================
 ```
