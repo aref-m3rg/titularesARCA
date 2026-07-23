@@ -70,11 +70,17 @@ SELECT
     um.unidades_medidas_descrip AS unidad_de_medida,
     (SELECT COUNT(DISTINCT pp2.persona_id) 
      FROM personas_parcelas pp2 
-     WHERE pp2.parcela_id = pa.parcela_id) AS cantidad_de_titulares
+     WHERE pp2.parcela_id = pa.parcela_id) AS cantidad_de_titulares,
+    (SELECT pl_tmp.plano_f_registro
+	  FROM parcelas p_tmp
+      JOIN planos_parc_prov pp_tmp ON p_tmp.parcela_id = pp_tmp.parcela_id
+      JOIN planos pl_tmp ON pp_tmp.plano_id = pl_tmp.plano_id
+      WHERE p_tmp.parcela_id = pa.parcela_id 
+        AND pl_tmp.tipo_estado_plano_id = 4) as fecha_registro_plano
 FROM 
-    personas_parcelas pp
+    parcelas pa
 JOIN 
-    parcelas pa ON pp.parcela_id = pa.parcela_id
+    personas_parcelas pp ON pa.parcela_id = pp.parcela_id
 LEFT JOIN
     personas p ON pp.persona_id = p.persona_id
 LEFT JOIN 
@@ -88,6 +94,8 @@ LEFT JOIN
 LEFT JOIN 
     unidades_medidas um ON pa.unidades_medidas_id = um.unidades_medidas_id
 WHERE 
+	pa.parcela_id <> 3698 and pa.parcela_id <> 38988 and /* duplicados para fecha de plano*/
 	pp.tipo_estado_id = 1
+	
 ORDER BY
     pp.parcela_id, p.persona_nro_doc;
