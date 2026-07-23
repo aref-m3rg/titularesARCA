@@ -16,9 +16,10 @@ import numpy as np
 import pandas as pd
 
 # Default paths
-DEFAULT_CSV = r"c:\Users\mmirabete\workspace\titularesARCA\2025_arca.csv"
-DEFAULT_OUT_DIR = r"c:\Users\mmirabete\workspace\titularesARCA"
+DEFAULT_CSV = r"2025_arca.csv"
+DEFAULT_OUT_DIR = r"."
 DEFAULT_YEAR = 2025
+DEFAULT_CUIT = "30672049379"
 
 
 def pad_alpha(val, length):
@@ -218,7 +219,7 @@ def build_nomenclatura(row):
 def process_data(csv_path, year=DEFAULT_YEAR):
     """
     Carga el CSV de origen, realiza las transformaciones necesarias y
-    retorna las líneas de ROTULO CABECERA y PROPIEDADES TITULARES.
+    retorna la línea de ROTULO CABECERA y las líneas de PROPIEDADES TITULARES.
     """
     print(f"Cargando dataset desde: {csv_path}")
     df = pd.read_csv(csv_path, sep=None, engine='python')
@@ -357,36 +358,51 @@ def process_data(csv_path, year=DEFAULT_YEAR):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generador de Archivos SETI ARCA F6500")
+    parser = argparse.ArgumentParser(description="Generador de Archivo Unificado SETI ARCA F6500")
     parser.add_argument("--csv", default=DEFAULT_CSV, help="Ruta al archivo CSV de origen")
-    parser.add_argument("--out-dir", default=DEFAULT_OUT_DIR, help="Directorio de salida para los archivos")
+    parser.add_argument("--out-dir", default=DEFAULT_OUT_DIR, help="Directorio de salida para el archivo")
     parser.add_argument("--year", type=int, default=DEFAULT_YEAR, help="Año de corte de la información")
-    parser.add_argument("--out-cabecera", default="ROTULO_CABECERA.txt", help="Nombre del archivo Rótulo Cabecera")
-    parser.add_argument("--out-titulares", default="PROPIEDADES_TITULARES.txt", help="Nombre del archivo Propiedades Titulares")
+    parser.add_argument("--cuit", default=DEFAULT_CUIT, help="CUIT del organismo/provincia que presenta el F6500")
+    parser.add_argument("--date", default="", help="Fecha del archivo en formato AAAAMMDD (opcional)")
+    parser.add_argument("--seq", default="", help="Número secuencial nnnn de archivo del día (opcional)")
+    parser.add_argument("--out-file", default="", help="Nombre personalizado del archivo de salida")
 
     args = parser.parse_args()
 
+    cuit_clean = "".join(filter(str.isdigit, str(args.cuit)))
+    if not cuit_clean:
+        cuit_clean = DEFAULT_CUIT
+
+    # Determinar nombre del archivo según formato especificado en ANEXO SETI PROVINCIAS.PDF:
+    # F6500.XXXXXXXXXXX.txt o F6500.XXXXXXXXXXX.AAAAMMDD.nnnn.txt
+    if args.out_file:
+        out_filename = args.out_file
+    elif args.date and args.seq:
+        out_filename = f"F6500.{cuit_clean}.{args.date}.{args.seq.zfill(4)}.txt"
+    else:
+        out_filename = f"F6500.{cuit_clean}.txt"
+
     os.makedirs(args.out_dir, exist_ok=True)
-    cabecera_path = os.path.join(args.out_dir, args.out_cabecera)
-    titulares_path = os.path.join(args.out_dir, args.out_titulares)
+    out_path = os.path.join(args.out_dir, out_filename)
 
     cabecera_line, titulares_lines = process_data(args.csv, year=args.year)
 
-    print(f"Escribiendo Rótulo Cabecera en: {cabecera_path}")
-    with open(cabecera_path, "w", encoding="iso-8859-1", newline="") as f:
+    print(f"Escribiendo archivo unificado SETI F6500 en: {out_path}")
+    with open(out_path, "w", encoding="iso-8859-1", newline="") as f:
+        # Línea 1: Rótulo Cabecera (31 posiciones)
         f.write(cabecera_line + "\r\n")
-
-    print(f"Escribiendo Propiedades Titulares en: {titulares_path}")
-    with open(titulares_path, "w", encoding="iso-8859-1", newline="") as f:
+        # Líneas 2..N+1: Propiedades Titulares (344 posiciones c/u)
         for line in titulares_lines:
             f.write(line + "\r\n")
 
     print("\n==================================================")
     print("PROCESO COMPLETADO EXITOSAMENTE!")
-    print(f"- Archivo Cabecera: {cabecera_path} (1 registro, {len(cabecera_line)} pos)")
-    print(f"- Archivo Titulares: {titulares_path} ({len(titulares_lines)} registros, 344 pos c/u)")
+    print(f"- Archivo Unificado: {out_path}")
+    print(f"- Cabecera (Línea 1): 1 registro de Tipo 01 ({len(cabecera_line)} pos)")
+    print(f"- Cuerpo (Líneas 2..{len(titulares_lines)+1}): {len(titulares_lines)} registros de Tipo 02 (344 pos c/u)")
     print("==================================================")
 
 
 if __name__ == "__main__":
     main()
+

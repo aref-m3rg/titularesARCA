@@ -1,6 +1,6 @@
 # Documentación Técnica: `generar_archivos_arca.py`
 
-Este documento describe el funcionamiento, arquitectura, reglas de negocio y modo de uso del script Python `generar_archivos_arca.py`, diseñado para procesar el padrón inmobiliario y generar los archivos estandarizados requeridos por **ARCA / AFIP** según las especificaciones del **Formulario F6500 (SETI Provincias)**.
+Este documento describe el funcionamiento, arquitectura, reglas de negocio y modo de uso del script Python `generar_archivos_arca.py`, diseñado para procesar el padrón inmobiliario y generar el archivo unificado estandarizado requerido por **ARCA / AFIP** según las especificaciones del **Formulario F6500 (SETI Provincias)**.
 
 ---
 
@@ -9,9 +9,10 @@ Este documento describe el funcionamiento, arquitectura, reglas de negocio y mod
 2. [Archivos de Referencia y Requisitos](#archivos-de-referencia-y-requisitos)
 3. [Instalación y Requisitos del Entorno](#instalación-y-requisitos-del-entorno)
 4. [Uso y Parámetros por Línea de Comandos](#uso-y-parámetros-por-línea-de-comandos)
-5. [Estructura y Especificación de Archivos Generados](#estructura-y-especificación-de-archivos-generados)
-   - [1. Rótulo Cabecera (31 posiciones)](#1-rótulo-cabecera-31-posiciones)
-   - [2. Propiedades Titulares (344 posiciones)](#2-propiedades-titulares-344-posiciones)
+5. [Estructura y Especificación del Archivo Generado](#estructura-y-especificación-del-archivo-generado)
+   - [Formato del Nombre del Archivo](#formato-del-nombre-del-archivo)
+   - [1. Rótulo Cabecera (Línea 1 - 31 posiciones)](#1-rótulo-cabecera-línea-1---31-posiciones)
+   - [2. Propiedades Titulares (Líneas 2..N+1 - 344 posiciones)](#2-propiedades-titulares-líneas-2n1---344-posiciones)
 6. [Reglas de Formateo y Mapeo de Datos](#reglas-de-formateo-y-mapeo-de-datos)
 7. [Ejemplo de Ejecución](#ejemplo-de-ejecución)
 
@@ -19,17 +20,17 @@ Este documento describe el funcionamiento, arquitectura, reglas de negocio y mod
 
 ## Descripción General
 
-El script `generar_archivos_arca.py` toma como insumo un archivo CSV (`2025_arca.csv`) que contiene la información de catastros, valuaciones y titularidad de inmuebles de la provincia de Tierra del Fuego, y genera dos archivos de texto de ancho fijo codificados en `ISO-8859-1` (Latin-1) con salto de línea estándar Windows (`\r\n`):
+El script `generar_archivos_arca.py` toma como insumo un archivo CSV (`2025_arca.csv`) que contiene la información de catastros, valuaciones y titularidad de inmuebles de la provincia de Tierra del Fuego, y genera un **único archivo de texto secuencial unificado** codificado en `ISO-8859-1` (Latin-1) con salto de línea estándar Windows (`\r\n`):
 
-1. **`ROTULO_CABECERA.txt`**: Archivo de control de cabecera (Tipo de Registro `01`) de **31 posiciones de ancho fijo**.
-2. **`PROPIEDADES_TITULARES.txt`**: Archivo de detalle de inmuebles y cotitulares (Tipo de Registro `02`) de **344 posiciones de ancho fijo** por registro.
+- **Línea 1**: Registro de Rótulo Cabecera (Tipo de Registro `01`) de **31 posiciones de ancho fijo**.
+- **Líneas 2 a N+1**: Registros de detalle de Propiedades Titulares (Tipo de Registro `02`) de **344 posiciones de ancho fijo** por registro.
 
 ---
 
 ## Archivos de Referencia y Requisitos
 
 La estructura de campos y reglas de formato cumplen estrictamente con los siguientes documentos normativos:
-- **`ANEXO SETI PROVINCIAS.PDF`**: Especificaciones generales de validación, codificación `ISO-8859-1`, reglas de completitud y tablas de códigos anexas (1 a 14).
+- **`ANEXO SETI PROVINCIAS.PDF`**: Especificaciones generales de validación, nomenclatura del archivo (`F6500.XXXXXXXXXXX.txt`), codificación `ISO-8859-1`, reglas de completitud y tablas de códigos anexas (1 a 14).
 - **`F6500 DISENO SETI.XLS`**: Posicionamiento exacto (`Desde`, `Hasta`, `Cant.`), tipo de dato y descripción de campos para los registros de Tipo 01 (Rótulo Cabecera) y Tipo 02 (Propiedades Titulares).
 - **`2025_arca.csv`**: Origen de datos primario.
 
@@ -57,30 +58,40 @@ python generar_archivos_arca.py [OPCIONES]
 | Parámetro | Descripción | Valor por Defecto |
 |---|---|---|
 | `--csv` | Ruta al archivo CSV de origen | `2025_arca.csv` |
-| `--out-dir` | Directorio de destino para los archivos planos | `..\titularesARCA` |
+| `--out-dir` | Directorio de destino para el archivo plano | `.` |
 | `--year` | Año de corte de la información (formato AAAA) | `2025` |
-| `--out-cabecera` | Nombre del archivo de Rótulo Cabecera | `ROTULO_CABECERA.txt` |
-| `--out-titulares` | Nombre del archivo de Propiedades Titulares | `PROPIEDADES_TITULARES.txt` |
+| `--cuit` | CUIT del organismo/provincia que presenta el F6500 | `30672049379` |
+| `--date` | Fecha opcional en formato `AAAAMMDD` | `""` |
+| `--seq` | Número secuencial opcional `nnnn` del archivo del día | `""` |
+| `--out-file` | Nombre personalizado opcional para el archivo de salida | `""` |
 
 ### Ejemplos de Uso:
 
-#### 1. Ejecución estándar con valores por defecto:
+#### 1. Ejecución estándar (genera `F6500.30672049379.txt`):
 ```bash
 python generar_archivos_arca.py
 ```
 
-#### 2. Especificando rutas de entrada/salida y año de corte personalizado:
+#### 2. Especificando CUIT, fecha y secuencia diaria:
 ```bash
-python generar_archivos_arca.py --csv "./datos_2026.csv" --out-dir "./salida" --year 2026
+python generar_archivos_arca.py --cuit 30672049379 --date 20260723 --seq 0001
+# Resultado: F6500.30672049379.20260723.0001.txt
 ```
 
 ---
 
-## Estructura y Especificación de Archivos Generados
+## Estructura y Especificación del Archivo Generado
 
-### 1. Rótulo Cabecera (31 posiciones)
+### Formato del Nombre del Archivo
+Acorde con la normativa descrita en el **Anexo SETI Provincias**, el nombre del archivo adopta uno de los dos formatos oficiales:
+- `F6500.XXXXXXXXXXX.txt` (donde `XXXXXXXXXXX` es la CUIT sin guiones del organismo/provincia que realiza la presentación, ej: `F6500.30672049379.txt`).
+- `F6500.XXXXXXXXXXX.AAAAMMDD.nnnn.txt` (cuando se presentan múltiples archivos en un mismo día).
 
-Archivo único por envío que valida el número total de registros de detalle.
+---
+
+### 1. Rótulo Cabecera (Línea 1 - 31 posiciones)
+
+Registro inicial único en la primera línea del archivo que contiene los totales de control del envío.
 
 | Campo | Posiciones | Cantidad | Tipo | Descripción / Valor |
 |---|---|---|---|---|
@@ -94,9 +105,9 @@ Archivo único por envío que valida el número total de registros de detalle.
 
 ---
 
-### 2. Propiedades Titulares (344 posiciones)
+### 2. Propiedades Titulares (Líneas 2..N+1 - 344 posiciones)
 
-Se incluye 1 registro por cada titular poseedor del inmueble.
+Cuerpo del archivo. Se incluye 1 registro de 344 caracteres por cada titular poseedor del inmueble.
 
 | N° | Posición | Cant. | Tipo | Campo | Regla / Mapeo desde CSV |
 |---|---|---|---|---|---|
@@ -156,12 +167,12 @@ python generar_archivos_arca.py
 ```text
 Cargando dataset desde: 2025_arca.csv
 Total de registros a procesar: 58490
-Escribiendo Rótulo Cabecera en: ROTULO_CABECERA.txt
-Escribiendo Propiedades Titulares en: PROPIEDADES_TITULARES.txt
+Escribiendo archivo unificado SETI F6500 en: .\F6500.30672049379.txt
 
 ==================================================
 PROCESO COMPLETADO EXITOSAMENTE!
-- Archivo Cabecera: ROTULO_CABECERA.txt (1 registro, 31 pos)
-- Archivo Titulares: PROPIEDADES_TITULARES.txt (58490 registros, 344 pos c/u)
+- Archivo Unificado: .\F6500.30672049379.txt
+- Cabecera (Línea 1): 1 registro de Tipo 01 (31 pos)
+- Cuerpo (Líneas 2..58491): 58490 registros de Tipo 02 (344 pos c/u)
 ==================================================
 ```
